@@ -25,15 +25,19 @@
 ## 内置软件
 
 * **iStoreOS 应用商店**：luci-app-store，store商店；
-* **Quickstart 快速引导**：开机向导，自动配置上网；
-* **Docker**：docker / dockerd / luci-app-dockerman；
-* **lucky**：端口转发 + 反向代理 + DDNS + Web服务 + 网络唤醒；
-* **tailscale**：VPN异地组网；
-* **smartdns**：本地 DNS 服务器，支持分组、分流、缓存与多上游并发查询；
-* **AdGuardHome**：广告过滤 DNS 服务器；
-* **mini-diskmanager**：磁盘管理工具；
-* **磁盘工具**：lsblk / parted / e2fsprogs / smartmontools；
-* **文件系统**：kmod-fs-f2fs / f2fs-tools / kmod-fs-ext4；
+* **dockerman**：luci-app-dockerman，Docker 容器管理；
+* **quickstart**：luci-app-quickstart，开机向导，自动配置上网；
+* **autoreboot**：luci-app-autoreboot，定时重启；
+* **ttyd**：luci-app-ttyd，网页终端；
+* **AdGuardHome**：luci-app-adguardhome，广告过滤 DNS 服务器；
+* **lucky**：luci-app-lucky，端口转发 + 反向代理 + DDNS + Web服务 + 网络唤醒；
+* **mini-diskmanager**：luci-app-mini-diskmanager，磁盘管理工具；
+* **smartdns**：luci-app-smartdns，本地 DNS 服务器，支持分组、分流、缓存与多上游并发查询；
+* **upnp**：luci-app-upnp，UPnP IGD 和 PCP/NAT-PMP 服务；
+* **hd-idle**：luci-app-hd-idle，硬盘休眠；
+* **samba4**：luci-app-samba4，网络共享；
+* **tailscale**：luci-app-tailscale，VPN异地组网；
+
 
 ## 目录结构
 
