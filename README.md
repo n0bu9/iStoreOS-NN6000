@@ -54,7 +54,7 @@ istoreos-nn6000/
 │   └── ipqwifi-eval.block               # ipq-wifi 评估板数据
 ├── config/
 │   ├── nn6000.seed                      # 个性化配置
-│   └── devices/                         # 设备选择 (LINK_NN6000V1 / V2，各含 no-wifi)
+│   └── devices/                         # 设备定义 (v1 / v2，各含 wifi + no-wifi)
 ├── files/                               # 覆盖到源码树的文件
 ├── patches/                             # 源码树补丁
 ├── scripts/                             # 应用与校验脚本
