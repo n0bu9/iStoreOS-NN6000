@@ -38,8 +38,15 @@ else
 	echo "::error::TARGET_MULTI_PROFILE is not set; cannot build multiple devices"
 	FAIL=1
 fi
-grep -q '^CONFIG_TARGET_ROOTFS_INITRAMFS=y' .config \
-	|| { echo "::error::initramfs image is disabled; TFTP first-install image will be missing"; FAIL=1; }
+
+for sym in $(sed -n 's/^\(CONFIG_TARGET_DEVICE_[^=]*\)=y$/\1/p' "$REPO_DIR"/config/devices/*.seed); do
+	if grep -q "^${sym}=y" .config; then
+		echo "  ok      $sym"
+	else
+		echo "::error::$sym was dropped by defconfig"
+		FAIL=1
+	fi
+done
 
 HARD=$(sed -n 's/^CONFIG_PACKAGE_\([^=]*\)=y$/\1/p' \
 	"$REPO_DIR/config/nn6000.seed" \
