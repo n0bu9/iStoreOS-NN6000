@@ -1,6 +1,5 @@
 'use strict';
 'require baseclass';
-'require fs';
 'require rpc';
 'require uci';
 /*
@@ -91,6 +90,10 @@ var callTempInfo = rpc.declare({
 	object: 'luci',
 	method: 'getTempInfo'
 });
+var callBuildTime = rpc.declare({
+	object: 'luci',
+	method: 'getBuildTime'
+});
 return baseclass.extend({
 	title: _('System'),
 	load: function() {
@@ -102,7 +105,7 @@ return baseclass.extend({
 			L.resolveDefault(callCPUInfo(), {}),
 			L.resolveDefault(callCPUUsage(), {}),
 			L.resolveDefault(callTempInfo(), {}),
-			L.resolveDefault(fs.read('/etc/nn6000-build-time').then(function(s) { return s.trim(); }), null),
+			L.resolveDefault(callBuildTime(), {}),
 			uci.load('system')
 		]);
 	},
@@ -114,7 +117,7 @@ return baseclass.extend({
 		    cpuinfo     = data[4],
 		    cpuusage    = data[5],
 		    tempinfo    = data[6],
-		    buildtime   = data[7];
+		    buildtime   = data[7].buildtime;
 		luciversion = luciversion.branch + ' ' + luciversion.revision;
 		// 2026-10-26 19:27 -> 2026.10.26_19.27, same as the release file prefix
 		var buildstamp = buildtime
