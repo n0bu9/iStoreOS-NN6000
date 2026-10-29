@@ -1,5 +1,5 @@
 # Link NN6000 - iStoreOS 25.12 build seed
-# Apply with:  cat config/nn6000.seed config/devices/v2.seed > .config && make defconfig
+# Apply with:  cat config/nn6000.seed config/devices/*.seed > .config && make defconfig
 
 # --- Build acceleration -----------------------------------------------------
 CONFIG_DEVEL=y
@@ -8,14 +8,12 @@ CONFIG_CCACHE=y
 # --- Target / devices -------------------------------------------------------
 # Multiple devices in one build pass: select MULTI_PROFILE, then enable each
 # device via the independent TARGET_DEVICE_* symbols under "Target Devices".
-# Device selection lives in config/devices/{v1,v2}.seed and is appended by the
-# workflow; TARGET_PER_DEVICE_ROOTFS makes every device build its own rootfs.
 CONFIG_TARGET_qualcommax=y
 CONFIG_TARGET_qualcommax_ipq60xx=y
 CONFIG_TARGET_MULTI_PROFILE=y
 CONFIG_TARGET_PER_DEVICE_ROOTFS=y
 CONFIG_TARGET_ROOTFS_SQUASHFS=y
-CONFIG_TARGET_ROOTFS_INITRAMFS=y
+# CONFIG_TARGET_ROOTFS_INITRAMFS is not set
 CONFIG_KERNEL_BUILD_USER="istoreos"
 CONFIG_KERNEL_BUILD_DOMAIN="istoreos"
 
