@@ -16,12 +16,9 @@ ls -lh "$OUT"
 echo "::endgroup::"
 
 find_image() {
-	# $1 = device, $2 = kind (factory|sysupgrade|initramfs)
+	# $1 = device, $2 = kind (factory|sysupgrade)
 	local dev="$1" kind="$2" pat
-	case "$kind" in
-		initramfs) pat="-${dev}-initramfs[^/]*$" ;;
-		*)         pat="-${dev}-squashfs-${kind}\.bin$" ;;
-	esac
+	pat="-${dev}-squashfs-${kind}\.bin$"
 	ls "$OUT"/* 2>/dev/null | grep -E -- "$pat" | head -1
 }
 
@@ -35,7 +32,7 @@ fi
 
 for DEV in $SELECTED; do
 	echo "::group::Verifying $DEV"
-	for kind in factory sysupgrade initramfs; do
+	for kind in factory sysupgrade; do
 		IMG=$(find_image "$DEV" "$kind")
 		if [ -n "$IMG" ] && [ -f "$IMG" ]; then
 			echo "  ok      $DEV $kind -> $(basename "$IMG")"

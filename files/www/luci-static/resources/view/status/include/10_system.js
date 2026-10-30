@@ -1,6 +1,5 @@
 'use strict';
 'require baseclass';
-'require fs';
 'require rpc';
 'require uci';
 /*
@@ -91,6 +90,10 @@ var callTempInfo = rpc.declare({
 	object: 'luci',
 	method: 'getTempInfo'
 });
+var callBuildTime = rpc.declare({
+	object: 'luci',
+	method: 'getBuildTime'
+});
 return baseclass.extend({
 	title: _('System'),
 	load: function() {
@@ -102,6 +105,7 @@ return baseclass.extend({
 			L.resolveDefault(callCPUInfo(), {}),
 			L.resolveDefault(callCPUUsage(), {}),
 			L.resolveDefault(callTempInfo(), {}),
+			L.resolveDefault(callBuildTime(), {}),
 			uci.load('system')
 		]);
 	},
@@ -112,8 +116,13 @@ return baseclass.extend({
 		    unixtime    = data[3],
 		    cpuinfo     = data[4],
 		    cpuusage    = data[5],
-		    tempinfo    = data[6];
+		    tempinfo    = data[6],
+		    buildtime   = data[7].buildtime;
 		luciversion = luciversion.branch + ' ' + luciversion.revision;
+		// 2026-10-26 19:27 -> 2026.10.26_19.27, same as the release file prefix
+		var buildstamp = buildtime
+			? buildtime.replace(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/, '$1.$2.$3_$4.$5')
+			: null;
 		var datestr = null;
 		if (unixtime) {
 			var date = new Date(unixtime * 1000),
@@ -132,7 +141,7 @@ return baseclass.extend({
 			_('Model'),            boardinfo.model,
 			_('Architecture'),     cpuinfo.cpuinfo || boardinfo.system,
 			_('Target Platform'),  (L.isObject(boardinfo.release) ? boardinfo.release.target : ''),
-			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + ' / ' : '') + (luciversion || '') + ' / build by TheJoker',
+			_('Firmware Version'), (L.isObject(boardinfo.release) ? boardinfo.release.description + (buildstamp ? '(' + buildstamp + ')' : '') + ' / ' : '') + (luciversion || '') + ' / build by TheJoker',
 			_('Kernel Version'),   boardinfo.kernel,
 			_('Local Time'),       datestr,
 			_('Uptime'),           systeminfo.uptime ? '%t'.format(systeminfo.uptime) : null,

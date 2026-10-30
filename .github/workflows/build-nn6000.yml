@@ -7,14 +7,6 @@ on:
         description: "iStoreOS git ref (branch/tag) to build on"
         required: true
         default: "istoreos-25.12"
-      device:
-        description: "Target hardware revision (each build ships wifi + no-wifi images)"
-        required: true
-        type: choice
-        default: LINK_NN6000V2
-        options:
-          - LINK_NN6000V2
-          - LINK_NN6000V1
       publish_release:
         description: "Publish firmware as a GitHub Release after a successful build"
         required: true
@@ -27,7 +19,7 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ github.event.inputs.device }} firmware
+    name: Build LINK_NN6000 firmware
     runs-on: ubuntu-24.04
     timeout-minutes: 720
     env:
@@ -52,7 +44,6 @@ jobs:
         run: |
           echo "commit_hash=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "commit_date=$(git log -1 --format=%cI)" >> "$GITHUB_OUTPUT"
-          echo "build_date=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')" >> "$GITHUB_OUTPUT"
           # kernel version lives in target/linux/generic/kernel-<patchver>
           KV=""
           if [ -f target/linux/generic/kernel-6.12 ]; then
@@ -108,9 +99,10 @@ jobs:
         working-directory: ${{ github.workspace }}/istoreos
         run: |
           set -o pipefail
-          DEVICE=$(echo "${{ github.event.inputs.device }}" | tr '[:upper:]' '[:lower:]')
+          # Every device seed is applied in one pass; the build produces all
+          # v1/v2 (wifi + no-wifi) images from a single compile.
           cat "$GITHUB_WORKSPACE/config/nn6000.seed" \
-              "$GITHUB_WORKSPACE/config/devices/${DEVICE}.seed" > .config
+              "$GITHUB_WORKSPACE"/config/devices/*.seed > .config
           make defconfig
           sh "$GITHUB_WORKSPACE/scripts/verify-config.sh" "$GITHUB_WORKSPACE/istoreos"
 
@@ -157,18 +149,26 @@ jobs:
         if: success() && inputs.publish_release
         run: |
           set -o pipefail
-          STAMP="$(TZ=Asia/Shanghai date +%y.%m.%d_%H.%M.%S)"
+          # Reuse the build time that was baked into the firmware so the release
+          # title, release body and file names all match what LuCI shows.
+          TS_FILE="istoreos/files/etc/nn6000-build-time"
+          if [ -s "$TS_FILE" ]; then
+            HUMAN="$(tr -d '\r\n' < "$TS_FILE")"
+          else
+            HUMAN="$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')"
+          fi
+          STAMP="$(printf '%s' "$HUMAN" | sed -e 's/[-:]/./g' -e 's/ /_/')"
           echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
-          echo "tag=rel-${{ github.event.inputs.device }}-${STAMP}" >> "$GITHUB_OUTPUT"
-          echo "human=$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')" >> "$GITHUB_OUTPUT"
+          echo "human=$HUMAN" >> "$GITHUB_OUTPUT"
+          echo "tag=rel-LINK_NN6000-${STAMP}" >> "$GITHUB_OUTPUT"
 
           SRC="istoreos/bin/targets/qualcommax/ipq60xx"
           DST="release-artifacts"
           mkdir -p "$DST"
 
-          # Only the devices enabled for this build pass exist in $SRC, so
+          # All v1/v2 (wifi + no-wifi) images are built by this single job, so
           # collect every link_nn6000 image plus the target manifest.
-          for f in "$SRC"/*link_nn6000-*.bin "$SRC"/*link_nn6000-*.itb "$SRC"/*qualcommax-ipq60xx*.manifest; do
+          for f in "$SRC"/*link_nn6000-*.bin "$SRC"/*qualcommax-ipq60xx*.manifest; do
             [ -f "$f" ] || continue
             cp "$f" "$DST/${STAMP}-$(basename "$f")"
           done
@@ -179,17 +179,16 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.ts.outputs.tag }}
-          name: iStoreOS ${{ github.event.inputs.device }} Firmware ${{ steps.ts.outputs.human }}
+          name: iStoreOS LINK_NN6000 Firmware ${{ steps.ts.outputs.human }}
           files: |
             release-artifacts/*.bin
-            release-artifacts/*.itb
             release-artifacts/*.manifest
           body: |
-            ## iStoreOS ${{ github.event.inputs.device }} Firmware
+            ## iStoreOS LINK_NN6000 Firmware
 
-            - **目标设备**: ${{ github.event.inputs.device }}
+            - **目标设备**: LINK_NN6000
             - **平台**: qualcommax/ipq60xx (ipq6000)
             - **iStoreOS 分支**: ${{ env.ISTOREOS_BRANCH }}
             - **iStoreOS 提交**: ${{ steps.info.outputs.commit_hash }} (${{ steps.info.outputs.commit_date }})
             - **内核版本**: ${{ steps.info.outputs.kernel_version }}
-            - **编译日期**: ${{ steps.info.outputs.build_date }}
+            - **编译日期**: ${{ steps.ts.outputs.human }}

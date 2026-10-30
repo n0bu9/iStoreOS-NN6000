@@ -1,6 +1,6 @@
 --- a/feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci
 +++ b/feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci
-@@ -47,6 +47,33 @@
+@@ -47,6 +47,42 @@
  }
  
  const methods = {
@@ -22,7 +22,7 @@
 +			return { tempinfo: data || null };
 +		}
 +	},
-+	getCPUUsage: {
++		getCPUUsage: {
 +			call: function(request) {
 +				const fd = popen('/bin/sh /usr/bin/cpuusage 2>/dev/null');
 +				const data = fd ? trim(fd.read('all')) : null;
@@ -31,6 +31,15 @@
 +				return { cpuusage: data || null };
 +			}
 +		},
++	getBuildTime: {
++		call: function(request) {
++			const fd = popen('/bin/cat /etc/nn6000-build-time 2>/dev/null');
++			const data = fd ? trim(fd.read('all')) : null;
++			if (fd)
++				fd.close();
++			return { buildtime: data || null };
++		}
++	},
  	getVersion: {
  		call: function(request) {
  			return { revision, branch };
@@ -41,7 +50,7 @@
  			},
  			"ubus": {
 -				"luci": [ "getVersion", "getUnixtime", "getOdhcp6cStats" ],
-+				"luci": [ "getVersion", "getUnixtime", "getOdhcp6cStats", "getCPUInfo", "getTempInfo", "getCPUUsage" ],
++				"luci": [ "getVersion", "getUnixtime", "getOdhcp6cStats", "getCPUInfo", "getTempInfo", "getCPUUsage", "getBuildTime" ],
  				"file": [ "list", "read" ],
  				"system": [ "board", "info" ]
  			}

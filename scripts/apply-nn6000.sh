@@ -62,6 +62,9 @@ for _tgz in "$TREE/package/luci/smartdns"/smartdns-*.tar.gz \
 	echo "  staged $(basename "$_tgz") into dl/"
 done
 
+printf '%s\n' "$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M')" > "$TREE/files/etc/nn6000-build-time"
+chmod 0644 "$TREE/files/etc/nn6000-build-time"
+
 echo "==> [2/3] Patching existing tree files"
 sh "$SCRIPT_DIR/patch_tree.sh" "$TREE" "$REPO_DIR/blocks"
 
@@ -117,6 +120,7 @@ check "overview tempinfo script"    test -f "$TREE/files/usr/bin/tempinfo"
 check "overview cpuusage script"    test -f "$TREE/files/usr/bin/cpuusage"
 check "overview 10_system.js"       grep -q 'getCPUUsage' "$TREE/files/www/luci-static/resources/view/status/include/10_system.js"
 check "apk signing key (25.12)"     test -f "$TREE/files/etc/apk/keys/immortalwrt-25.12.pem"
+check "firmware build time stamp"   grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$' "$TREE/files/etc/nn6000-build-time"
 check "apk mirror uci-default"      test -f "$TREE/files/etc/uci-defaults/99-apk-mirror"
 check "argon theme uci-default"     test -f "$TREE/files/etc/uci-defaults/99-argon-theme"
 check "uhttpd max_requests uci-default" test -f "$TREE/files/etc/uci-defaults/99-uhttpd-max-requests"
@@ -203,6 +207,6 @@ echo "Next steps (in $TREE):"
 echo "  ./scripts/feeds update -a"
 echo "  sh $SCRIPT_DIR/setup-feeds.sh ."
 echo "  ./scripts/feeds update -i && ./scripts/feeds install -a"
-echo "  cat $REPO_DIR/config/nn6000.seed $REPO_DIR/config/devices/link_nn6000v2.seed > .config && make defconfig"
+echo "  cat $REPO_DIR/config/nn6000.seed $REPO_DIR/config/devices/*.seed > .config && make defconfig"
 echo "  sh $SCRIPT_DIR/verify-config.sh ."
 echo "  make -j\$(nproc)"
